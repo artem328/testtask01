@@ -61,15 +61,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             font-size: 14px;
             -webkit-transform: scale(0);
             transform: scale(0);
-            -webkit-transition: -webkit-transform 0.3s;
-            transition: -webkit-transform 0.3s;
-            transition: transform 0.3s;
-            transition: transform 0.3s, -webkit-transform 0.3s;
+            -webkit-transition: top, -webkit-transform 0.3s;
+            transition: top, -webkit-transform 0.3s;
+            transition: top, transform 0.3s;
+            transition: top, transform 0.3s, -webkit-transform 0.3s;
+            top: -100%;
+            position: fixed;
         }
 
         .url-simplifier__alert--shown {
             -webkit-transform: scale(1);
             transform: scale(1);
+            top: 0;
         }
 
         .url-simplifier__alert input[readonly] {
@@ -178,28 +181,46 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <div class="url-simplifier">
     <h1 class="url-simplifier__title"><?php echo lang('title_simplify'); ?></h1>
     <div class="field">
-        <form>
+        <form method="post" action="<?php echo base_url('simplify'); ?>" id="url-simplify-form">
             <input id="url" type="text" name="url" autocomplete="off"/>
             <label id="url-label" for="url"><span><?php echo lang('enter_url'); ?></span></label>
             <button type="submit" id="submit-button"><?php echo lang('button_simplify'); ?></button>
         </form>
     </div>
-    <div class="url-simplifier__alert url-simplifier__alert--shown" id="short-url-result">
+    <div class="url-simplifier__alert" id="short-url-result">
         <p><?php echo lang('result_url'); ?>
             <input type="text"
                    readonly
-                   value="http://example.com/a2v3"
+                   value=""
                    id="short-url"
                    title="">
         </p>
     </div>
+    <div class="url-simplifier__alert" id="error"><?php echo lang('error_generate_url'); ?></div>
 </div>
 <script type="text/javascript">
     (function (d) {
         var urlField = d.getElementById('url'),
             submitButton = d.getElementById('submit-button'),
             label = d.getElementById('url-label'),
-            resultAlert = d.getElementById('short-url-result');
+            resultAlert = d.getElementById('short-url-result'),
+            shortUrlField = d.getElementById('short-url'),
+            form = d.getElementById('url-simplify-form'),
+            error = d.getElementById('error'),
+            displayAlert = function (url) {
+                shortUrlField.value = url;
+                resultAlert.classList.add('url-simplifier__alert--shown');
+            },
+            hideAlert = function () {
+                resultAlert.classList.remove('url-simplifier__alert--shown');
+                shortUrlField.value = '';
+            },
+            displayError = function () {
+                error.classList.add('url-simplifier__alert--shown');
+            },
+            hideError = function () {
+                error.classList.remove('url-simplifier__alert--shown');
+            };
 
         urlField.addEventListener('keyup', function () {
             if (this.value) {
@@ -220,6 +241,41 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 submitButton.classList.remove('active');
                 urlField.classList.remove('active');
             }
+        });
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            hideError();
+            hideAlert();
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open(this.method, this.action, true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            xhr.onreadystatechange = function () {
+                if (4 !== xhr.readyState) {
+                    return;
+                }
+
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (200 === xhr.status) {
+                        if (response.success) {
+                            displayAlert(response.short_url);
+                        } else {
+                            displayError();
+                        }
+                    } else {
+                        displayError();
+                    }
+                } catch (e) {
+                    displayError();
+                }
+            };
+
+            xhr.send('url=' + encodeURIComponent(urlField.value));
         });
     })(document);
 </script>
