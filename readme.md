@@ -20,3 +20,12 @@
 - Пользователь: `vagrant`
 - База данных: `vagrant`
 - Пароль: `secret`
+
+## Миграции
+Чтоб запустить миграцию, необходимо запустить команду
+`php index.php migrate`
+
+### Vagrant
+Для запуска миграции в Vagrant, необходимо перед запуском комады 
+объявить переменную окружения `CI_ENV` со значением `development-vagrant`.
+Например `export CI_ENV=development-vagrant; php index.php migrate`
