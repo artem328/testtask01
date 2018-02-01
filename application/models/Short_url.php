@@ -61,6 +61,15 @@ class Short_url extends CI_Model {
 
     /**
      * @param string $code
+     * @return bool
+     */
+    public function short_code_exists($code)
+    {
+        return null !== $this->find_by_code($code);
+    }
+
+    /**
+     * @param string $code
      * @return Short_url|null
      */
     public function find_by_code($code)
@@ -74,12 +83,19 @@ class Short_url extends CI_Model {
     }
 
     /**
-     * @param string $code
-     * @return bool
+     * @param Short_url|null $short_url
+     * @param int $count
      */
-    public function short_code_exists($code)
+    public function increment_visit($short_url = null, $count = 1)
     {
-        return null !== $this->find_by_code($code);
-    }
+        if (null === $short_url) {
+            $short_url = $this;
+        }
 
+        if ($short_url->id) {
+            $short_url->visits += $count;
+            $this->db
+                ->update('short_urls', $short_url, ['id' => $short_url->id]);
+        }
+    }
 }
