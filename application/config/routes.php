@@ -53,5 +53,6 @@ $route['default_controller'] = 'home';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+$route['migrate'] = 'migrate/index';
 $route['simplify'] = 'simplify/index';
 $route['(.+)'] = 'redirect/index/$1';
